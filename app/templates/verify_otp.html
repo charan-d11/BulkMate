@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BulkMate — Verify OTP</title>
+  <!-- PWA -->
+<link rel="manifest" href="/static/manifest.json"/>
+<meta name="theme-color" content="#4ade80"/>
+<link rel="apple-touch-icon" href="/static/icons/icon-192x192.png"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Barlow', sans-serif; }
+    .brand { font-family: 'Barlow Condensed', sans-serif; }
+    .bg-grid {
+      background-color: #0a0a0a;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .glow-green { box-shadow: 0 0 30px rgba(74, 222, 128, 0.15); }
+    .otp-input {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #4ade80;
+      font-size: 1.5rem;
+      font-weight: 800;
+      text-align: center;
+      transition: border-color 0.15s ease;
+      width: 48px;
+      height: 56px;
+      border-radius: 12px;
+    }
+    .otp-input:focus { outline: none; border-color: #4ade80; background: #0d1f0d; }
+    .btn-primary {
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    /* Timer */
+    #timer { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="bg-grid min-h-screen flex items-center justify-center px-4">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="fixed top-4 right-4 z-50 space-y-2">
+        {% for category, message in messages %}
+          <div class="px-4 py-3 rounded-lg text-sm font-semibold
+            {% if category == 'danger' %} bg-red-500/20 border border-red-500/40 text-red-300
+            {% else %} bg-green-500/20 border border-green-500/40 text-green-300 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="w-full max-w-md">
+
+    <!-- Logo -->
+    <div class="text-center mb-10">
+      <span class="brand text-5xl font-black tracking-tight">
+        <span class="text-white">BULK</span><span class="text-green-400">MATE</span>
+      </span>
+      <p class="text-neutral-500 text-sm mt-1">Password Recovery</p>
+      <!-- Progress -->
+      <div class="flex gap-1.5 justify-center mt-3">
+        <div class="h-1 w-8 rounded-full bg-green-400"></div>
+        <div class="h-1 w-8 rounded-full bg-green-400"></div>
+        <div class="h-1 w-8 rounded-full bg-neutral-700"></div>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 glow-green">
+
+      <!-- Icon -->
+      <div class="w-14 h-14 rounded-2xl bg-green-400/10 border border-green-400/20 flex items-center justify-center text-3xl mx-auto mb-6">
+        📬
+      </div>
+
+      <h2 class="text-white text-xl font-bold text-center mb-1">Check your email</h2>
+      <p class="text-neutral-500 text-sm text-center mb-2">We sent a 6-digit OTP to your email</p>
+
+      <!-- Timer -->
+      <p class="text-center text-sm mb-6">
+        <span class="text-neutral-500">Expires in </span>
+        <span id="timer" class="text-green-400 font-bold">10:00</span>
+      </p>
+
+      <form method="POST" action="{{ url_for('auth.verify_otp') }}" id="otpForm">
+
+        <!-- 6 OTP boxes -->
+        <div class="flex justify-center gap-2 mb-6">
+          <input type="text" maxlength="1" class="otp-input" id="otp1" oninput="moveNext(this, 'otp2')" onkeydown="movePrev(event, null, 'otp1')"/>
+          <input type="text" maxlength="1" class="otp-input" id="otp2" oninput="moveNext(this, 'otp3')" onkeydown="movePrev(event, 'otp1', 'otp2')"/>
+          <input type="text" maxlength="1" class="otp-input" id="otp3" oninput="moveNext(this, 'otp4')" onkeydown="movePrev(event, 'otp2', 'otp3')"/>
+          <input type="text" maxlength="1" class="otp-input" id="otp4" oninput="moveNext(this, 'otp5')" onkeydown="movePrev(event, 'otp3', 'otp4')"/>
+          <input type="text" maxlength="1" class="otp-input" id="otp5" oninput="moveNext(this, 'otp6')" onkeydown="movePrev(event, 'otp4', 'otp5')"/>
+          <input type="text" maxlength="1" class="otp-input" id="otp6" oninput="moveNext(this, null)"  onkeydown="movePrev(event, 'otp5', 'otp6')"/>
+        </div>
+
+        <!-- Hidden input to collect full OTP -->
+        <input type="hidden" name="otp" id="otpHidden"/>
+
+        <button type="submit" id="verifyBtn" class="btn-primary w-full py-3 rounded-xl text-black font-bold text-sm" disabled>
+          Verify OTP →
+        </button>
+
+      </form>
+
+      <div class="text-center mt-4">
+        <a href="{{ url_for('auth.forgot_password') }}" class="text-neutral-500 text-sm hover:text-green-400 transition-colors">
+          Didn't receive OTP? Resend →
+        </a>
+      </div>
+
+    </div>
+
+    <p class="text-center text-neutral-700 text-xs mt-6">
+      BulkMate © 2026 · Built for gainers, maintainers & losers alike
+    </p>
+
+  </div>
+
+  <script>
+    // ── Move to next OTP box ──
+    function moveNext(current, nextId) {
+      if (current.value.length === 1) {
+        if (nextId) document.getElementById(nextId).focus();
+      }
+      checkAllFilled();
+    }
+
+    // ── Move to prev OTP box on backspace ──
+    function movePrev(event, prevId, currentId) {
+      if (event.key === 'Backspace' && document.getElementById(currentId).value === '') {
+        if (prevId) document.getElementById(prevId).focus();
+      }
+    }
+
+    // ── Enable button when all 6 filled ──
+    function checkAllFilled() {
+      const inputs = ['otp1','otp2','otp3','otp4','otp5','otp6'];
+      const allFilled = inputs.every(id => document.getElementById(id).value !== '');
+      document.getElementById('verifyBtn').disabled = !allFilled;
+    }
+
+    // ── Collect OTP before submit ──
+    document.getElementById('otpForm').addEventListener('submit', () => {
+      const otp = ['otp1','otp2','otp3','otp4','otp5','otp6']
+                    .map(id => document.getElementById(id).value).join('');
+      document.getElementById('otpHidden').value = otp;
+    });
+
+    // ── Countdown Timer (10 min) ──
+    let seconds = 600;
+    const timerEl = document.getElementById('timer');
+    const interval = setInterval(() => {
+      seconds--;
+      const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      timerEl.textContent = `${m}:${s}`;
+      if (seconds <= 60) timerEl.classList.replace('text-green-400', 'text-red-400');
+      if (seconds <= 0) {
+        clearInterval(interval);
+        timerEl.textContent = 'Expired!';
+        document.getElementById('verifyBtn').disabled = true;
+      }
+    }, 1000);
+
+    // ── Only allow numbers in OTP boxes ──
+    document.querySelectorAll('.otp-input').forEach(input => {
+      input.addEventListener('keypress', (e) => {
+        if (!/[0-9]/.test(e.key)) e.preventDefault();
+      });
+    });
+
+    // Focus first box on load
+    document.getElementById('otp1').focus();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BulkMate — AI Nutrition Partner</title>
+  <!-- PWA -->
+<link rel="manifest" href="/static/manifest.json"/>
+<meta name="theme-color" content="#4ade80"/>
+<link rel="apple-touch-icon" href="/static/icons/icon-192x192.png"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Barlow', sans-serif; }
+    .brand { font-family: 'Barlow Condensed', sans-serif; }
+    .bg-grid {
+      background-color: #0a0a0a;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .hero-glow {
+      background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(74,222,128,0.08) 0%, transparent 70%);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-2px); }
+    .feature-card {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-card:hover { border-color: #2a2a2a; transform: translateY(-2px); }
+    .goal-pill {
+      background: #111;
+      border: 1px solid #1e1e1e;
+      transition: all 0.2s;
+    }
+    .goal-pill:hover { border-color: #4ade80; }
+  </style>
+</head>
+<body class="bg-grid min-h-screen text-white">
+
+  <!-- Nav -->
+  <nav class="flex items-center justify-between px-8 py-5 border-b border-neutral-900/50">
+    <span class="brand text-3xl font-black tracking-tight">
+      <span class="text-white">BULK</span><span class="text-green-400">MATE</span>
+    </span>
+    <div class="flex items-center gap-3">
+      <a href="{{ url_for('auth.login') }}" class="text-neutral-400 hover:text-white text-sm font-semibold transition-colors px-4 py-2">
+        Log in
+      </a>
+      <a href="{{ url_for('auth.register') }}" class="btn-primary px-5 py-2 rounded-xl text-black font-bold text-sm">
+        Get started free
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-glow relative px-8 pt-24 pb-20 text-center">
+    <div class="inline-flex items-center gap-2 bg-green-400/10 border border-green-400/20 rounded-full px-4 py-1.5 mb-8">
+      <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+      <span class="text-green-400 text-xs font-semibold">Powered by Gemini AI</span>
+    </div>
+
+    <h1 class="brand text-7xl font-black tracking-tight leading-none mb-6">
+      YOUR SMART<br/>
+      <span class="text-green-400">NUTRITION</span> PARTNER
+    </h1>
+
+    <p class="text-neutral-400 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+      Track every meal, hit your calorie goals, and chat with an AI that actually knows your diet — whether you're bulking, cutting, or maintaining.
+    </p>
+
+    <div class="flex items-center justify-center gap-4">
+      <a href="{{ url_for('auth.register') }}" class="btn-primary px-8 py-3.5 rounded-xl text-black font-bold text-base">
+        Start tracking free →
+      </a>
+      <a href="{{ url_for('auth.login') }}" class="text-neutral-400 hover:text-white text-sm font-semibold transition-colors">
+        Already have an account?
+      </a>
+    </div>
+
+    <!-- Goal pills -->
+    <div class="flex items-center justify-center gap-3 mt-10">
+      <div class="goal-pill px-4 py-2 rounded-full text-sm flex items-center gap-2">
+        <span>🔺</span> <span class="text-neutral-300 font-medium">Gain weight</span>
+      </div>
+      <div class="goal-pill px-4 py-2 rounded-full text-sm flex items-center gap-2">
+        <span>➡️</span> <span class="text-neutral-300 font-medium">Maintain weight</span>
+      </div>
+      <div class="goal-pill px-4 py-2 rounded-full text-sm flex items-center gap-2">
+        <span>🔻</span> <span class="text-neutral-300 font-medium">Lose weight</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="px-8 py-20 max-w-5xl mx-auto">
+    <p class="text-center text-neutral-600 text-xs font-semibold uppercase tracking-widest mb-12">Everything you need</p>
+
+    <div class="grid grid-cols-3 gap-4">
+
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-xl bg-green-400/10 flex items-center justify-center text-xl mb-4">🍽️</div>
+        <h3 class="text-white font-bold mb-2">Smart Meal Logging</h3>
+        <p class="text-neutral-500 text-sm leading-relaxed">Type any food naturally. We fetch exact calories, protein, carbs & fat from Nutritionix — with AI as fallback.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-xl bg-green-400/10 flex items-center justify-center text-xl mb-4">🤖</div>
+        <h3 class="text-white font-bold mb-2">Goal-Aware AI Chat</h3>
+        <p class="text-neutral-500 text-sm leading-relaxed">Chat with an AI that knows your goal, your calorie target, and exactly what you've eaten today.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-xl bg-green-400/10 flex items-center justify-center text-xl mb-4">📊</div>
+        <h3 class="text-white font-bold mb-2">Daily Dashboard</h3>
+        <p class="text-neutral-500 text-sm leading-relaxed">See your macro progress, remaining calories, and get a personalized AI tip every day.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-xl bg-green-400/10 flex items-center justify-center text-xl mb-4">🎯</div>
+        <h3 class="text-white font-bold mb-2">Personalized Goals</h3>
+        <p class="text-neutral-500 text-sm leading-relaxed">Set your goal — gain, maintain, or lose. Your calorie target is auto-calculated using your body stats.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-xl bg-green-400/10 flex items-center justify-center text-xl mb-4">📅</div>
+        <h3 class="text-white font-bold mb-2">Meal History</h3>
+        <p class="text-neutral-500 text-sm leading-relaxed">Every meal is saved. Look back at any day to review what you ate and how you performed.</p>
+      </div>
+
+      <div class="feature-card rounded-2xl p-6">
+        <div class="w-10 h-10 rounded-xl bg-green-400/10 flex items-center justify-center text-xl mb-4">💬</div>
+        <h3 class="text-white font-bold mb-2">Persistent Chat</h3>
+        <p class="text-neutral-500 text-sm leading-relaxed">Your chat history is saved so the AI remembers your conversations and gives better advice over time.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="px-8 py-16 text-center border-t border-neutral-900">
+    <h2 class="brand text-5xl font-black mb-4">READY TO START?</h2>
+    <p class="text-neutral-500 mb-8">Free to use. No credit card required.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn-primary inline-block px-10 py-4 rounded-xl text-black font-bold text-base">
+      Create your account →
+    </a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-neutral-900 px-8 py-6 flex items-center justify-between">
+    <span class="brand text-xl font-black">
+      <span class="text-white">BULK</span><span class="text-green-400">MATE</span>
+    </span>
+    <p class="text-neutral-700 text-xs">© 2024 BulkMate · Built for gainers, maintainers & losers alike</p>
+  </footer>
+
+</body>
+</html>

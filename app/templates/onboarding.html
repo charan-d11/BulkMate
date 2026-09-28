@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BulkMate — Set Your Goal</title>
+  <!-- PWA -->
+<link rel="manifest" href="/static/manifest.json"/>
+<meta name="theme-color" content="#4ade80"/>
+<link rel="apple-touch-icon" href="/static/icons/icon-192x192.png"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Barlow', sans-serif; }
+    .brand { font-family: 'Barlow Condensed', sans-serif; }
+    .bg-grid {
+      background-color: #0a0a0a;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .input-field {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #e5e5e5;
+      transition: border-color 0.15s ease;
+    }
+    .input-field:focus { outline: none; border-color: #4ade80; }
+    .input-field::placeholder { color: #555; }
+    .goal-card {
+      border: 2px solid #2a2a2a;
+      background: #111;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .goal-card:hover { border-color: #4ade80; background: #141414; }
+    .goal-card.selected { border-color: #4ade80; background: #0d1f0d; }
+    .goal-card.selected .goal-icon { background: #4ade80; color: #000; }
+    .btn-primary {
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  </style>
+</head>
+<body class="bg-grid min-h-screen flex items-center justify-center px-4 py-10">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="fixed top-4 right-4 z-50 space-y-2">
+        {% for category, message in messages %}
+          <div class="px-4 py-3 rounded-lg text-sm font-semibold
+            {% if category == 'danger' %} bg-red-500/20 border border-red-500/40 text-red-300
+            {% else %} bg-green-500/20 border border-green-500/40 text-green-300 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="w-full max-w-lg">
+
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <span class="brand text-4xl font-black tracking-tight">
+        <span class="text-white">BULK</span><span class="text-green-400">MATE</span>
+      </span>
+      <p class="text-neutral-500 text-sm mt-1">Step 2 of 2 — Set your goal</p>
+      <!-- Progress bar -->
+      <div class="flex gap-1.5 justify-center mt-3">
+        <div class="h-1 w-8 rounded-full bg-green-400"></div>
+        <div class="h-1 w-8 rounded-full bg-green-400"></div>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.onboarding') }}" id="onboardForm">
+
+      <!-- Goal Selection -->
+      <div class="mb-6">
+        <p class="text-white font-bold text-lg mb-1">What is your goal?</p>
+        <p class="text-neutral-500 text-sm mb-4">The app will personalize everything based on this.</p>
+
+        <div class="grid grid-cols-3 gap-3">
+
+          <!-- Gain -->
+          <div class="goal-card rounded-xl p-4 text-center" onclick="selectGoal('gain')">
+            <div class="goal-icon w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-xl mx-auto mb-3 transition-all">🔺</div>
+            <p class="text-white font-bold text-sm">Gain</p>
+            <p class="text-neutral-500 text-xs mt-1">Build mass</p>
+          </div>
+
+          <!-- Maintain -->
+          <div class="goal-card rounded-xl p-4 text-center" onclick="selectGoal('maintain')">
+            <div class="goal-icon w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-xl mx-auto mb-3 transition-all">➡️</div>
+            <p class="text-white font-bold text-sm">Maintain</p>
+            <p class="text-neutral-500 text-xs mt-1">Stay balanced</p>
+          </div>
+
+          <!-- Lose -->
+          <div class="goal-card rounded-xl p-4 text-center" onclick="selectGoal('lose')">
+            <div class="goal-icon w-10 h-10 rounded-full bg-neutral-800 flex items-center justify-center text-xl mx-auto mb-3 transition-all">🔻</div>
+            <p class="text-white font-bold text-sm">Lose</p>
+            <p class="text-neutral-500 text-xs mt-1">Cut fat</p>
+          </div>
+
+        </div>
+        <input type="hidden" name="goal" id="goalInput" required/>
+        <p id="goal-error" class="text-red-400 text-xs mt-2 hidden">Please select a goal</p>
+      </div>
+
+      <!-- Body Stats -->
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-4 mb-6">
+        <p class="text-white font-bold">Your body stats</p>
+
+        <!-- Age & Weight row -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Age</label>
+            <input type="number" name="age" min="10" max="80" required placeholder="25"
+              class="input-field w-full px-4 py-3 rounded-xl text-sm"/>
+          </div>
+          <div>
+            <label class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Weight (kg)</label>
+            <input type="number" name="weight" min="30" max="250" step="0.1" required placeholder="70"
+              class="input-field w-full px-4 py-3 rounded-xl text-sm"/>
+          </div>
+        </div>
+
+        <!-- Height -->
+        <div>
+          <label class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Height (cm)</label>
+          <input type="number" name="height" min="100" max="250" required placeholder="175"
+            class="input-field w-full px-4 py-3 rounded-xl text-sm"/>
+        </div>
+
+        <!-- Activity Level -->
+        <div>
+          <label class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Activity Level</label>
+          <select name="activity" required class="input-field w-full px-4 py-3 rounded-xl text-sm">
+            <option value="" disabled selected class="text-neutral-500">Select activity level</option>
+            <option value="1.2">Sedentary (desk job, no exercise)</option>
+            <option value="1.375">Lightly active (1–3x/week)</option>
+            <option value="1.55">Moderately active (3–5x/week)</option>
+            <option value="1.725">Very active (6–7x/week)</option>
+            <option value="1.9">Athlete (2x/day training)</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Calorie preview -->
+      <div id="cal-preview" class="hidden bg-green-400/10 border border-green-400/30 rounded-xl p-4 mb-6">
+        <p class="text-green-400 text-xs font-semibold uppercase tracking-wider mb-1">Estimated daily target</p>
+        <p class="text-white text-2xl font-black"><span id="cal-number">—</span> <span class="text-neutral-400 text-sm font-normal">kcal / day</span></p>
+        <p id="cal-desc" class="text-neutral-500 text-xs mt-1"></p>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" id="submitBtn"
+        class="btn-primary w-full py-3.5 rounded-xl text-black font-bold text-sm">
+        Let's go! →
+      </button>
+
+    </form>
+
+  </div>
+
+  <script>
+    let selectedGoal = '';
+
+    function selectGoal(goal) {
+      selectedGoal = goal;
+      document.getElementById('goalInput').value = goal;
+      document.getElementById('goal-error').classList.add('hidden');
+
+      // Update card styles
+      document.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+
+      updateCalPreview();
+    }
+
+    function calculateCalories() {
+      const age      = parseFloat(document.querySelector('[name="age"]').value);
+      const weight   = parseFloat(document.querySelector('[name="weight"]').value);
+      const height   = parseFloat(document.querySelector('[name="height"]').value);
+      const activity = parseFloat(document.querySelector('[name="activity"]').value);
+
+      if (!age || !weight || !height || !activity) return null;
+
+      const bmr  = 10 * weight + 6.25 * height - 5 * age + 5;
+      const tdee = bmr * activity;
+
+      if (selectedGoal === 'gain')     return Math.round(tdee + 450);
+      if (selectedGoal === 'lose')     return Math.round(tdee - 450);
+      if (selectedGoal === 'maintain') return Math.round(tdee);
+      return null;
+    }
+
+    function updateCalPreview() {
+      const cal = calculateCalories();
+      const preview = document.getElementById('cal-preview');
+      if (!cal || !selectedGoal) { preview.classList.add('hidden'); return; }
+
+      preview.classList.remove('hidden');
+      document.getElementById('cal-number').textContent = cal.toLocaleString();
+
+      const descs = {
+        gain:     'Calorie surplus of ~450 kcal above your maintenance',
+        maintain: 'Exactly your maintenance calories',
+        lose:     'Calorie deficit of ~450 kcal below your maintenance'
+      };
+      document.getElementById('cal-desc').textContent = descs[selectedGoal];
+    }
+
+    // Live preview update on input change
+    document.querySelectorAll('input[type="number"], select').forEach(el => {
+      el.addEventListener('input', updateCalPreview);
+    });
+
+    // Validate goal on submit
+    document.getElementById('onboardForm').addEventListener('submit', (e) => {
+      if (!selectedGoal) {
+        e.preventDefault();
+        document.getElementById('goal-error').classList.remove('hidden');
+      }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "name": "BulkMate — AI Nutrition Partner",
+  "short_name": "BulkMate",
+  "description": "Track meals, hit your calorie goals, and chat with AI about your nutrition.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#4ade80",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["health", "fitness", "food"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "description": "View today's nutrition summary"
+    },
+    {
+      "name": "AI Chat",
+      "url": "/chat",
+      "description": "Chat with BulkMate AI"
+    }
+  ]
+}

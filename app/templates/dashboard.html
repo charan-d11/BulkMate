@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BulkMate — Dashboard</title>
+  <!-- PWA -->
+<link rel="manifest" href="/static/manifest.json"/>
+<meta name="theme-color" content="#4ade80"/>
+<link rel="apple-touch-icon" href="/static/icons/icon-192x192.png"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Barlow', sans-serif; background: #0a0a0a; }
+    .brand { font-family: 'Barlow Condensed', sans-serif; }
+    .sidebar { background: #0f0f0f; border-right: 1px solid #1a1a1a; }
+    .nav-link { transition: all 0.15s ease; color: #555; }
+    .nav-link:hover { color: #e5e5e5; background: #1a1a1a; }
+    .nav-link.active { color: #4ade80; background: #0d1f0d; }
+    .stat-card { background: #111; border: 1px solid #1e1e1e; }
+    .progress-ring { transform: rotate(-90deg); }
+    .input-field {
+      background: #1a1a1a; border: 1px solid #2a2a2a;
+      color: #e5e5e5; transition: border-color 0.15s ease;
+    }
+    .input-field:focus { outline: none; border-color: #4ade80; }
+    .input-field::placeholder { color: #555; }
+    .btn-primary {
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .meal-row { border-bottom: 1px solid #1a1a1a; transition: background 0.1s; }
+    .meal-row:hover { background: #141414; }
+    .meal-row:last-child { border-bottom: none; }
+    .ai-tip { background: linear-gradient(135deg, #0d1f0d, #111); border: 1px solid #1e3a1e; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+  </style>
+</head>
+<body class="min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside class="sidebar w-56 min-h-screen flex flex-col fixed left-0 top-0 z-10">
+    <div class="p-5 border-b border-neutral-900">
+      <span class="brand text-2xl font-black">
+        <span class="text-white">BULK</span><span class="text-green-400">MATE</span>
+      </span>
+    </div>
+    <div class="p-4 border-b border-neutral-900">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-green-400/20 border border-green-400/40 flex items-center justify-center text-green-400 font-bold text-sm">
+          {{ user.name[0].upper() }}
+        </div>
+        <div>
+          <p class="text-white text-sm font-semibold leading-tight">{{ user.name }}</p>
+          <p class="text-neutral-600 text-xs capitalize">Goal: {{ user.goal }}</p>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 p-3 space-y-1">
+      <a href="{{ url_for('dashboard.index') }}" class="nav-link active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold">
+        <span>📊</span> Dashboard
+      </a>
+      <a href="{{ url_for('chat.chat_page') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold">
+        <span>🤖</span> AI Chat
+      </a>
+      <a href="#meals" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold">
+        <span>🍽️</span> Meals
+      </a>
+    </nav>
+    <div class="p-3 border-t border-neutral-900">
+      <a href="{{ url_for('auth.logout') }}" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold">
+        <span>🚪</span> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="ml-56 flex-1 p-6 overflow-y-auto">
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-4 space-y-2">
+          {% for category, message in messages %}
+            <div class="px-4 py-3 rounded-lg text-sm font-semibold
+              {% if category == 'danger' %} bg-red-500/20 border border-red-500/40 text-red-300
+              {% else %} bg-green-500/20 border border-green-500/40 text-green-300 {% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-white text-2xl font-bold">Good day, {{ user.name.split()[0] }}! 👋</h1>
+        <p class="text-neutral-500 text-sm mt-0.5">Here's your nutrition summary for today</p>
+        <button onclick="openEditModal()"
+          class="mt-2 text-xs text-green-400 border border-green-400/30 hover:border-green-400 px-3 py-1.5 rounded-lg transition-all">
+          ✏️ Edit Profile
+        </button>
+      </div>
+      <div class="text-right">
+        <p class="text-neutral-500 text-xs">Daily target</p>
+        <p class="text-green-400 font-black text-xl">{{ user.goal_calories }} <span class="text-neutral-500 font-normal text-sm">kcal</span></p>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="stat-card rounded-xl p-4">
+        <p class="text-neutral-500 text-xs uppercase tracking-wider mb-1">Consumed</p>
+        <p class="text-white text-2xl font-black">{{ today_calories }}</p>
+        <p class="text-neutral-600 text-xs">kcal</p>
+      </div>
+      <div class="stat-card rounded-xl p-4">
+        <p class="text-neutral-500 text-xs uppercase tracking-wider mb-1">Remaining</p>
+        <p class="text-2xl font-black {% if remaining_calories < 0 %}text-red-400{% else %}text-green-400{% endif %}">
+          {{ remaining_calories }}
+        </p>
+        <p class="text-neutral-600 text-xs">kcal</p>
+      </div>
+      <div class="stat-card rounded-xl p-4">
+        <p class="text-neutral-500 text-xs uppercase tracking-wider mb-1">Protein</p>
+        <p class="text-white text-2xl font-black">{{ today_protein }}</p>
+        <p class="text-neutral-600 text-xs">grams</p>
+      </div>
+      <div class="stat-card rounded-xl p-4 flex items-center gap-3">
+        <svg width="48" height="48" class="progress-ring flex-shrink-0">
+          <circle cx="24" cy="24" r="20" fill="none" stroke="#1e1e1e" stroke-width="4"/>
+          <circle cx="24" cy="24" r="20" fill="none" stroke="#4ade80" stroke-width="4"
+            stroke-dasharray="125.6"
+            stroke-dashoffset="{{ [125.6 - (today_calories / user.goal_calories * 125.6), 0] | max }}"
+            stroke-linecap="round"/>
+        </svg>
+        <div>
+          <p class="text-white font-black text-lg">{{ [(today_calories / user.goal_calories * 100) | int, 100] | min }}%</p>
+          <p class="text-neutral-600 text-xs">of goal</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Macro bars -->
+    <div class="stat-card rounded-xl p-5 mb-6">
+      <p class="text-white font-bold mb-4">Today's Macros</p>
+      <div class="space-y-3">
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-neutral-400">Calories</span>
+            <span class="text-neutral-400">{{ today_calories }} / {{ user.goal_calories }} kcal</span>
+          </div>
+          <div class="h-2 bg-neutral-800 rounded-full overflow-hidden">
+            <div class="h-full bg-green-400 rounded-full" style="width: {{ [(today_calories / user.goal_calories * 100) | int, 100] | min }}%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-neutral-400">Protein</span>
+            <span class="text-neutral-400">{{ today_protein }}g</span>
+          </div>
+          <div class="h-2 bg-neutral-800 rounded-full overflow-hidden">
+            <div class="h-full bg-blue-400 rounded-full" style="width: {{ [(today_protein / (user.weight * 2) * 100) | int, 100] | min }}%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-neutral-400">Carbs</span>
+            <span class="text-neutral-400">{{ today_carbs }}g</span>
+          </div>
+          <div class="h-2 bg-neutral-800 rounded-full overflow-hidden">
+            <div class="h-full bg-yellow-400 rounded-full" style="width: 60%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-neutral-400">Fat</span>
+            <span class="text-neutral-400">{{ today_fat }}g</span>
+          </div>
+          <div class="h-2 bg-neutral-800 rounded-full overflow-hidden">
+            <div class="h-full bg-orange-400 rounded-full" style="width: 45%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Tip + Add Meal row -->
+    <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="ai-tip rounded-xl p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-lg">🤖</span>
+          <p class="text-green-400 font-bold text-sm">BulkMate AI Tip</p>
+        </div>
+        <p class="text-neutral-300 text-sm leading-relaxed">{{ ai_tip }}</p>
+        <a href="{{ url_for('chat.chat_page') }}" class="inline-block mt-3 text-green-400 text-xs font-semibold hover:text-green-300">
+          Chat with AI →
+        </a>
+      </div>
+      <div class="stat-card rounded-xl p-5" id="meals">
+        <p class="text-white font-bold mb-3">Quick Add Meal</p>
+        <div class="flex gap-2">
+          <input type="text" id="foodInput" placeholder="e.g. 2 eggs and rice"
+            class="input-field flex-1 px-3 py-2.5 rounded-lg text-sm"/>
+          <button onclick="addMeal()" class="btn-primary px-4 py-2.5 rounded-lg text-black font-bold text-sm flex-shrink-0">
+            Add
+          </button>
+        </div>
+        <p id="meal-status" class="text-xs mt-2 text-neutral-600"></p>
+      </div>
+    </div>
+
+    <!-- Today's Meals Table -->
+    <div class="stat-card rounded-xl overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-800">
+        <p class="text-white font-bold">Today's Meals</p>
+        <p class="text-neutral-600 text-xs">{{ today_meals | length }} items logged</p>
+      </div>
+      {% if today_meals %}
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-neutral-900">
+              <th class="text-left px-5 py-3 text-neutral-600 text-xs uppercase tracking-wider font-semibold">Food</th>
+              <th class="text-right px-5 py-3 text-neutral-600 text-xs uppercase tracking-wider font-semibold">Cal</th>
+              <th class="text-right px-5 py-3 text-neutral-600 text-xs uppercase tracking-wider font-semibold">Protein</th>
+              <th class="text-right px-5 py-3 text-neutral-600 text-xs uppercase tracking-wider font-semibold">Carbs</th>
+              <th class="text-right px-5 py-3 text-neutral-600 text-xs uppercase tracking-wider font-semibold">Fat</th>
+              <th class="px-5 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for meal in today_meals %}
+              <tr class="meal-row" id="meal-{{ meal.id }}">
+                <td class="px-5 py-3 text-white text-sm font-medium">{{ meal.food_name }}</td>
+                <td class="px-5 py-3 text-right text-neutral-300 text-sm">{{ meal.calories }}</td>
+                <td class="px-5 py-3 text-right text-blue-400 text-sm">{{ meal.protein }}g</td>
+                <td class="px-5 py-3 text-right text-yellow-400 text-sm">{{ meal.carbs }}g</td>
+                <td class="px-5 py-3 text-right text-orange-400 text-sm">{{ meal.fat }}g</td>
+                <td class="px-5 py-3 text-right">
+                  <button onclick="deleteMeal({{ meal.id }})"
+                    class="text-neutral-700 hover:text-red-400 text-xs transition-colors">✕</button>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="px-5 py-12 text-center">
+          <p class="text-neutral-600 text-sm">No meals logged today yet.</p>
+          <p class="text-neutral-700 text-xs mt-1">Use the quick add above to log your first meal!</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-4">
+      <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 w-full max-w-md">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="text-white font-bold text-lg">Edit Profile</h3>
+          <button onclick="closeEditModal()" class="text-neutral-500 hover:text-white text-xl">✕</button>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label for="edit_name" class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Full Name</label>
+            <input type="text" id="edit_name" value="{{ user.name }}"
+              class="w-full px-4 py-3 rounded-xl text-sm bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:border-green-400"/>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="edit_age" class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Age</label>
+              <input type="number" id="edit_age" value="{{ user.age }}"
+                class="w-full px-4 py-3 rounded-xl text-sm bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:border-green-400"/>
+            </div>
+            <div>
+              <label for="edit_weight" class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Weight (kg)</label>
+              <input type="number" id="edit_weight" value="{{ user.weight }}" step="0.1"
+                class="w-full px-4 py-3 rounded-xl text-sm bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:border-green-400"/>
+            </div>
+          </div>
+          <div>
+            <label for="edit_height" class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Height (cm)</label>
+            <input type="number" id="edit_height" value="{{ user.height }}"
+              class="w-full px-4 py-3 rounded-xl text-sm bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:border-green-400"/>
+          </div>
+          <div>
+            <label for="edit_goal" class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Goal</label>
+            <select id="edit_goal"
+              class="w-full px-4 py-3 rounded-xl text-sm bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:border-green-400">
+              <option value="gain"     {% if user.goal == 'gain'     %}selected{% endif %}>🔺 Gain Weight</option>
+              <option value="maintain" {% if user.goal == 'maintain' %}selected{% endif %}>➡️ Maintain Weight</option>
+              <option value="lose"     {% if user.goal == 'lose'     %}selected{% endif %}>🔻 Lose Weight</option>
+            </select>
+          </div>
+          <div>
+            <label for="edit_activity" class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Activity Level</label>
+            <select id="edit_activity"
+              class="w-full px-4 py-3 rounded-xl text-sm bg-neutral-800 border border-neutral-700 text-white focus:outline-none focus:border-green-400">
+              <option value="1.2">Sedentary (desk job, no exercise)</option>
+              <option value="1.375">Lightly active (1–3x/week)</option>
+              <option value="1.55">Moderately active (3–5x/week)</option>
+              <option value="1.725">Very active (6–7x/week)</option>
+              <option value="1.9">Athlete (2x/day training)</option>
+            </select>
+          </div>
+          <p id="edit-status" class="text-xs hidden"></p>
+          <button onclick="saveProfile()"
+            class="w-full py-3 rounded-xl text-black font-bold text-sm"
+            style="background: linear-gradient(135deg, #4ade80, #16a34a)">
+            Save Changes ✓
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // ── Add Meal ──
+    async function addMeal() {
+      const input  = document.getElementById('foodInput');
+      const status = document.getElementById('meal-status');
+      const food   = input.value.trim();
+      if (!food) return;
+
+      status.textContent = 'Fetching nutrition data...';
+      status.className   = 'text-xs mt-2 text-neutral-500';
+
+      try {
+        const res  = await fetch('/api/meal/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ food_name: food })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          status.textContent = `✓ Added! ${data.nutrition.calories} kcal · ${data.nutrition.protein}g protein`;
+          status.className   = 'text-xs mt-2 text-green-400';
+          input.value        = '';
+          setTimeout(() => location.reload(), 1200);
+        } else {
+          status.textContent = '✗ ' + (data.error || 'Failed to add meal');
+          status.className   = 'text-xs mt-2 text-red-400';
+        }
+      } catch {
+        status.textContent = '✗ Network error';
+        status.className   = 'text-xs mt-2 text-red-400';
+      }
+    }
+
+    // ── Delete Meal ──
+    async function deleteMeal(id) {
+      try {
+        const res = await fetch('/api/meal/delete/' + id, { method: 'DELETE' });
+        if (res.ok) {
+          document.getElementById('meal-' + id).remove();
+        }
+      } catch {
+        alert('Failed to delete meal');
+      }
+    }
+
+    // ── Enter key to add meal ──
+    document.getElementById('foodInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') addMeal();
+    });
+
+    // ── Open Edit Modal ──
+    function openEditModal() {
+      document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    // ── Close Edit Modal ──
+    function closeEditModal() {
+      document.getElementById('editModal').classList.add('hidden');
+    }
+
+    // ── Close modal on outside click ──
+    document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === document.getElementById('editModal')) {
+        closeEditModal();
+      }
+    });
+
+    // ── Save Profile ──
+    async function saveProfile() {
+      const status = document.getElementById('edit-status');
+      status.classList.remove('hidden');
+      status.textContent = 'Saving...';
+      status.className   = 'text-xs text-neutral-500';
+
+      try {
+        const res  = await fetch('/api/profile/edit', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name:     document.getElementById('edit_name').value,
+            age:      document.getElementById('edit_age').value,
+            weight:   document.getElementById('edit_weight').value,
+            height:   document.getElementById('edit_height').value,
+            goal:     document.getElementById('edit_goal').value,
+            activity: document.getElementById('edit_activity').value
+          })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          status.textContent = '✓ Profile updated!';
+          status.className   = 'text-xs text-green-400';
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          status.textContent = '✗ ' + data.error;
+          status.className   = 'text-xs text-red-400';
+        }
+      } catch {
+        status.textContent = '✗ Network error';
+        status.className   = 'text-xs text-red-400';
+      }
+    }
+  </script>
+
+</body>
+</html>

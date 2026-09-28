@@ -1,0 +1,96 @@
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+bulk
+
+
+.env
+.env.*
+!.env.example
+
+
+.ipynb_checkpoints/
+
+
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+
+
+.mypy_cache/
+.pyre/
+.ruff_cache/
+
+# =========================
+# IDE / Editors
+# =========================
+
+.vscode/
+.idea/
+
+# =========================
+# OS Files
+# =========================
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# =========================
+# Logs
+# =========================
+
+*.log
+
+# =========================
+# Database
+# =========================
+
+*.sqlite
+*.sqlite3
+*.db
+
+# =========================
+# Model / Large Generated Files
+# =========================
+
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.onnx
+
+# =========================
+# Temporary files
+# =========================
+
+*.tmp
+*.temp

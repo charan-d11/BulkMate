@@ -1,0 +1,26 @@
+# Web Framework
+flask==3.1.1
+flask-sqlalchemy==3.1.1
+flask-login==0.6.3
+flask-bcrypt==1.0.1
+
+# Database
+sqlalchemy==2.0.40
+
+# AI
+google-genai==1.16.0        # Gemini AI
+
+# Environment & Config
+python-dotenv==1.1.0
+
+# HTTP Requests (for Nutritionix API)
+requests==2.32.3
+
+# Utilities
+datetime
+sendgrid==6.11.0
+
+#Database
+psycopg2-binary
+
+gunicorn==21.2.0

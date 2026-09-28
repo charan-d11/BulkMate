@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BulkMate — Login</title>
+  <!-- PWA -->
+<link rel="manifest" href="/static/manifest.json"/>
+<meta name="theme-color" content="#4ade80"/>
+<link rel="apple-touch-icon" href="/static/icons/icon-192x192.png"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Barlow', sans-serif; }
+    .brand { font-family: 'Barlow Condensed', sans-serif; }
+
+    .bg-grid {
+      background-color: #0a0a0a;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .glow-green {
+      box-shadow: 0 0 30px rgba(74, 222, 128, 0.15);
+    }
+
+    input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+      -webkit-text-fill-color: #e5e5e5 !important;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .input-field {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #e5e5e5;
+      transition: border-color 0.15s ease;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: #4ade80;
+    }
+    .input-field::placeholder {
+      color: #555;
+    }
+  </style>
+</head>
+<body class="bg-grid min-h-screen flex items-center justify-center px-4">
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="fixed top-4 right-4 z-50 space-y-2">
+        {% for category, message in messages %}
+          <div class="px-4 py-3 rounded-lg text-sm font-semibold
+            {% if category == 'danger' %} bg-red-500/20 border border-red-500/40 text-red-300
+            {% else %} bg-green-500/20 border border-green-500/40 text-green-300 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="w-full max-w-md">
+
+    <!-- Logo -->
+    <div class="text-center mb-10">
+      <span class="brand text-5xl font-black tracking-tight">
+        <span class="text-white">BULK</span><span class="text-green-400">MATE</span>
+      </span>
+      <p class="text-neutral-500 text-sm mt-1 tracking-wide">Your AI nutrition partner</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 glow-green">
+
+      <h2 class="text-white text-xl font-bold mb-6">Welcome back</h2>
+
+      <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-4">
+
+        <!-- Email -->
+        <div>
+          <label class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Email</label>
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="you@example.com"
+            class="input-field w-full px-4 py-3 rounded-xl text-sm"
+          />
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="block text-neutral-400 text-xs font-semibold mb-1.5 uppercase tracking-wider">Password</label>
+          <div class="relative">
+  <input
+    type="password"
+    name="password"
+    id="loginPassword"
+    required
+    placeholder="••••••••"
+    class="input-field w-full px-4 py-3 rounded-xl text-sm pr-12"
+  />
+  <button
+    type="button"
+    onclick="togglePassword('loginPassword', this)"
+    class="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-green-400 transition-colors"
+  >
+    👁️
+  </button>
+</div>
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="btn-primary w-full py-3 rounded-xl text-black font-bold text-sm mt-2"
+        >
+          Log in
+        </button>
+          <p class="text-center text-neutral-500 text-sm mt-3">
+  <a href="{{ url_for('auth.forgot_password') }}"
+     class="text-neutral-500 hover:text-green-400 text-xs transition-colors">
+    Forgot your password?
+  </a>
+</p>
+      </form>
+
+      <!-- Divider -->
+      <div class="flex items-center gap-3 my-6">
+        <div class="flex-1 h-px bg-neutral-800"></div>
+        <span class="text-neutral-600 text-xs">or</span>
+        <div class="flex-1 h-px bg-neutral-800"></div>
+      </div>
+
+      <!-- Register link -->
+      <p class="text-center text-neutral-500 text-sm">
+        New to BulkMate?
+        <a href="{{ url_for('auth.register') }}" class="text-green-400 font-semibold hover:text-green-300 transition-colors">
+          Create an account
+        </a>
+      </p>
+
+    </div>
+
+    <!-- Footer -->
+    <p class="text-center text-neutral-700 text-xs mt-6">
+      BulkMate © 2024 · Built for gainers, maintainers & losers alike
+    </p>
+
+  </div>
+    <script>
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈";
+      } else {
+        input.type = "password";
+        btn.textContent = "👁️";
+      }
+    }
+  </script>
+
+</body>
+</html>
+</body>
+</html>
