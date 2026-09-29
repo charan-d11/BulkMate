@@ -3,6 +3,10 @@ from flask import send_from_directory
 
 app = create_app()
 
+# Runs every time the app starts, including under gunicorn on Render
+with app.app_context():
+    db.create_all()
+    print("Tables ready!")
 
 
 @app.route('/service-worker.js')
@@ -11,8 +15,5 @@ def service_worker():
                                mimetype='application/javascript')
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()   # Creates weightgain.db + all tables on first run
-        #print("Database tables created!")
-        print(" Starting BulkMate...")
+    print("Starting BulkMate...")
     app.run(debug=True)
