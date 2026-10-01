@@ -1,8 +1,5 @@
-// BulkMate Service Worker
-// No offline support — internet required
-// This file makes BulkMate installable as a PWA
 
-const CACHE_NAME = 'bulkmate-v1';
+const CACHE_NAME = 'bulkmate-v2';
 
 // Install event
 self.addEventListener('install', (event) => {
